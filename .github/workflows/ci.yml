@@ -1,0 +1,66 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Home Assistant app lint
+        uses: frenck/action-addon-linter@v2.21
+        with:
+          path: ./hashforge
+
+      - name: ShellCheck
+        # The service scripts have no file extension and start under s6's with-contenv, so the shell is named.
+        run: |
+          shellcheck --shell bash --external-sources \
+            --source-path hashforge/rootfs/usr/local/lib/hashforge \
+            hashforge/rootfs/usr/local/lib/hashforge/*.sh \
+            hashforge/rootfs/etc/s6-overlay/s6-rc.d/*/run \
+            tests/smoke.sh
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Install Bats
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends bats
+
+      - name: Unit tests
+        run: bats tests
+
+  image:
+    name: Image builds and starts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build --tag hashforge-ha:ci hashforge
+
+      - name: Smoke test
+        run: tests/smoke.sh hashforge-ha:ci
