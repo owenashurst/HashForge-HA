@@ -37,7 +37,7 @@ jobs:
       build_matrix: ${{ steps.matrix.outputs.matrix }}
       image_name: ${{ steps.normalize.outputs.image_name }}
       registry_prefix: ${{ steps.normalize.outputs.registry_prefix }}
-      version: ${{ steps.info.outputs.version }}
+      version: ${{ steps.normalize.outputs.version }}
       hashforge_commit: ${{ steps.pool.outputs.commit }}
     steps:
       - name: Check out
@@ -49,13 +49,19 @@ jobs:
         with:
           path: ./hashforge
 
-      - name: Split the image name
+      - name: Tidy the image name and version
         id: normalize
         env:
           IMAGE: ${{ steps.info.outputs.image }}
+          VERSION: ${{ steps.info.outputs.version }}
+        # The values arrive with the quotation marks they have in config.yaml, which are not part of
+        # an image name or a tag.
         run: |
+          IMAGE="${IMAGE//\"/}"
+          VERSION="${VERSION//\"/}"
           echo "image_name=${IMAGE##*/}" >> "$GITHUB_OUTPUT"
           echo "registry_prefix=${IMAGE%/*}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Find the HashForge commit to build
         id: pool
