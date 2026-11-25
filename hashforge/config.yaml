@@ -20,10 +20,9 @@ panel_icon: mdi:pickaxe
 panel_title: HashForge
 # Bitcoin Core needs time to write its databases out; cutting it short forces a long re-check on the next start.
 timeout: 300
-# The pool keeps running during a backup. The database is first written out as a single file, and the
-# two folders below are skipped: "postgres" because that file replaces it, "bitcoin" because the
-# blockchain is large and is simply downloaded again.
-backup: hot
+# The pool keeps running during a backup (Home Assistant's default). The database is first written out
+# as a single file, and the two folders below are skipped: "postgres" because that file replaces it,
+# "bitcoin" because the blockchain is large and is simply downloaded again.
 backup_pre: /usr/local/lib/hashforge/backup-database.sh
 backup_exclude:
   - bitcoin
