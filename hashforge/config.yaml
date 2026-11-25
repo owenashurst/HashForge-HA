@@ -1,7 +1,7 @@
 name: HashForge
 # Raising this number is what releases an update: the publish workflow builds the image from the latest
 # HashForge code and tags it with this version, and Home Assistant then offers it to everyone.
-version: "0.1.0"
+version: "0.1.1"
 slug: hashforge
 description: Run your own Bitcoin mining pool, with a Bitcoin node, from Home Assistant
 url: "https://github.com/owenashurst/HashForge-HA"
@@ -11,7 +11,6 @@ arch:
   - amd64
 # The image runs its own process supervisor (s6), which has to be the first process in the container.
 init: false
-stage: experimental
 # Shows the pool inside Home Assistant, with a sidebar entry, for anyone signed in as an administrator.
 # Home Assistant forwards those requests to the pool's ordinary web port.
 ingress: true

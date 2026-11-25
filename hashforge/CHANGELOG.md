@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- No longer marked experimental, after running on a real Home Assistant machine.
+
 ## 0.1.0
 
 - First release: the HashForge pool, Bitcoin Core 32.1, Redis and PostgreSQL 17 in one app.
