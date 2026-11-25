@@ -1,0 +1,146 @@
+configuration:
+  network:
+    name: Bitcoin network
+    description: >-
+      The network the bundled node joins. Use testnet4 or regtest to try the pool out without real bitcoin.
+      Ignored when an external node is set.
+  prune_mb:
+    name: Disk space for blocks (MiB)
+    description: >-
+      How much disk the bundled node may use for blocks. 550 is the smallest allowed; 0 keeps every block,
+      which needs several hundred gigabytes on mainnet.
+  stratum_host:
+    name: Address miners connect to
+    description: >-
+      The host name or IP address of this Home Assistant machine as your miners see it. It is only shown
+      on the pool's "Connect" page; it does not change how the pool listens.
+  solo_enabled:
+    name: Solo pool
+    description: Whoever finds a block keeps the whole reward. Listens on port 3333.
+  pplns_enabled:
+    name: PPLNS pool
+    description: The reward is split by each miner's recent shares. Listens on port 3334.
+  prop_enabled:
+    name: Proportional pool
+    description: The reward is split by each miner's shares since the last block. Listens on port 3335.
+  bonus_enabled:
+    name: Finder-bonus pool
+    description: >-
+      The miner who finds the block gets a fixed bonus and the rest is split like the proportional pool.
+      Listens on port 3336.
+  admin_networks:
+    name: Networks allowed to open the admin page
+    description: >-
+      Address ranges, in CIDR form, that may open the pool's admin page. The default covers every private
+      home network; narrow it to your own, for example 192.168.1.0/24.
+  pool_fee_address:
+    name: Pool fee address
+    description: >-
+      The Bitcoin address that receives the pool fee. Needed only when a pool charges a fee, and it must
+      belong to the chosen network.
+  solo_fee_percent:
+    name: Solo pool fee (%)
+    description: Share of each block reward kept by the pool. Defaults to 0.
+  pplns_fee_percent:
+    name: PPLNS pool fee (%)
+    description: Share of each block reward kept by the pool. Defaults to 0.
+  prop_fee_percent:
+    name: Proportional pool fee (%)
+    description: Share of each block reward kept by the pool. Defaults to 0.
+  bonus_fee_percent:
+    name: Finder-bonus pool fee (%)
+    description: Share of each block reward kept by the pool. Defaults to 0.
+  pplns_window_multiplier:
+    name: PPLNS window
+    description: >-
+      How far back shares count, as a multiple of the network difficulty. Defaults to 2.
+  bonus_finder_satoshis:
+    name: Finder bonus (satoshis)
+    description: What the block finder gets on the finder-bonus pool. Defaults to 100000000 (1 BTC).
+  max_coinbase_outputs:
+    name: Most miners paid per block
+    description: >-
+      Lower this if your miners' firmware struggles with large blocks of payouts. Defaults to 500.
+  coinbase_tag:
+    name: Coinbase tag
+    description: Text written into every block the pool finds. Defaults to /HashForge/.
+  template_refresh_seconds:
+    name: Job refresh (seconds)
+    description: >-
+      Between blocks, how often miners get a new job that includes the latest transactions. Defaults to 30.
+  network_stats_refresh_seconds:
+    name: Network statistics refresh (seconds)
+    description: How often difficulty, network hashrate and height are re-read from the node. Defaults to 30.
+  stratum_initial_difficulty:
+    name: Starting difficulty
+    description: The share difficulty a miner starts at before it is adjusted to its speed. Defaults to 1024.
+  stratum_min_difficulty:
+    name: Lowest difficulty
+    description: >-
+      The lowest share difficulty a miner can be given. Only very small miners need it below the default
+      of 0.001.
+  db_cache_mb:
+    name: Node memory for synchronising (MiB)
+    description: >-
+      Memory the bundled node may use for its coin database. Raising it (for example to 2048) makes the
+      first synchronisation much faster if the machine has the memory. Defaults to 450.
+  block_reserved_weight:
+    name: Block space reserved for payouts
+    description: Space the node keeps free in each block for the pool's payouts. Defaults to 100000.
+  brand_name:
+    name: Pool name
+    description: The name shown in the web interface and in Discord messages. Defaults to HashForge.
+  brand_tagline:
+    name: Pool tagline
+    description: The line shown under the pool's name.
+  brand_accent_color:
+    name: Accent colour
+    description: "The web interface's highlight colour, written as #RRGGBB. Defaults to #f7931a."
+  brand_logo_url:
+    name: Logo address
+    description: An https:// image to use as the logo. Without one, the first letter of the pool name is shown.
+  trusted_proxy:
+    name: Reverse proxy address
+    description: >-
+      The IP address of a reverse proxy in front of the web interface, if you use one, so that the admin
+      page sees visitors' real addresses.
+  discord_webhook_url:
+    name: Discord webhook
+    description: A Discord webhook address to post to when something notable happens. Leave unset for no messages.
+  discord_notify_block_found:
+    name: Announce blocks on Discord
+    description: Post a message when the pool finds a block. On by default.
+  discord_notify_best_share:
+    name: Announce best shares on Discord
+    description: Post a message when a pool beats its best share so far. On by default.
+  discord_best_share_cooldown_seconds:
+    name: Best-share message cooldown (seconds)
+    description: At most one best-share message per pool in this many seconds. Defaults to 60.
+  external_node_rpc_url:
+    name: External node address
+    description: >-
+      The RPC address of a Bitcoin Core node you already run, such as http://192.168.1.20:8332/. When
+      set, the bundled node is not started and uses no disk.
+  external_node_rpc_user:
+    name: External node user
+    description: The RPC user name of your own node.
+  external_node_rpc_password:
+    name: External node password
+    description: The RPC password of your own node.
+  external_node_zmq_block_url:
+    name: External node block announcements
+    description: >-
+      The ZeroMQ address your node announces new blocks on, such as tcp://192.168.1.20:28332. Optional,
+      but without it miners hear about new blocks a few seconds later.
+network:
+  8080/tcp: The pool's web interface
+  3333/tcp: Solo pool (Stratum)
+  3334/tcp: PPLNS pool (Stratum)
+  3335/tcp: Proportional pool (Stratum)
+  3336/tcp: Finder-bonus pool (Stratum)
+  3337/tcp: Spare port for a pool added from the admin page
+  3338/tcp: Spare port for a pool added from the admin page
+  3339/tcp: Spare port for a pool added from the admin page
+  3340/tcp: Spare port for a pool added from the admin page
+  3341/tcp: Spare port for a pool added from the admin page
+  8333/tcp: Incoming connections from other Bitcoin nodes (optional)

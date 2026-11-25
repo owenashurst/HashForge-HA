@@ -1,0 +1,88 @@
+name: HashForge
+# Raising this number is what releases an update: the publish workflow builds the image from the latest
+# HashForge code and tags it with this version, and Home Assistant then offers it to everyone.
+version: "0.1.0"
+slug: hashforge
+description: Run your own Bitcoin mining pool, with a Bitcoin node, from Home Assistant
+url: "https://github.com/owenashurst/HashForge-HA"
+image: "ghcr.io/owenashurst/hashforge-ha"
+arch:
+  - aarch64
+  - amd64
+# The image runs its own process supervisor (s6), which has to be the first process in the container.
+init: false
+stage: experimental
+webui: "http://[HOST]:[PORT:8080]/"
+panel_icon: mdi:pickaxe
+# Bitcoin Core needs time to write its databases out; cutting it short forces a long re-check on the next start.
+timeout: 300
+# The pool keeps running during a backup. The database is first written out as a single file, and the
+# two folders below are skipped: "postgres" because that file replaces it, "bitcoin" because the
+# blockchain is large and is simply downloaded again.
+backup: hot
+backup_pre: /usr/local/lib/hashforge/backup-database.sh
+backup_exclude:
+  - bitcoin
+  - postgres
+ports:
+  8080/tcp: 8080
+  3333/tcp: 3333
+  3334/tcp: 3334
+  3335/tcp: 3335
+  3336/tcp: 3336
+  3337/tcp: null
+  3338/tcp: null
+  3339/tcp: null
+  3340/tcp: null
+  3341/tcp: null
+  8333/tcp: null
+options:
+  network: mainnet
+  prune_mb: 550
+  stratum_host: homeassistant.local
+  solo_enabled: true
+  pplns_enabled: false
+  prop_enabled: false
+  bonus_enabled: false
+  admin_networks:
+    - 192.168.0.0/16
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+schema:
+  network: list(mainnet|testnet4|signet|regtest)
+  prune_mb: int(0,)
+  stratum_host: str
+  solo_enabled: bool
+  pplns_enabled: bool
+  prop_enabled: bool
+  bonus_enabled: bool
+  admin_networks:
+    - str
+  pool_fee_address: str?
+  solo_fee_percent: float(0,100)?
+  pplns_fee_percent: float(0,100)?
+  prop_fee_percent: float(0,100)?
+  bonus_fee_percent: float(0,100)?
+  pplns_window_multiplier: float(0,)?
+  bonus_finder_satoshis: int(0,)?
+  max_coinbase_outputs: int(1,)?
+  coinbase_tag: str?
+  template_refresh_seconds: int(1,)?
+  network_stats_refresh_seconds: int(1,)?
+  stratum_initial_difficulty: float(0,)?
+  stratum_min_difficulty: float(0,)?
+  db_cache_mb: int(4,)?
+  block_reserved_weight: int(2000,)?
+  brand_name: str?
+  brand_tagline: str?
+  brand_accent_color: match(^#[0-9a-fA-F]{6}$)?
+  brand_logo_url: url?
+  trusted_proxy: str?
+  discord_webhook_url: url?
+  discord_notify_block_found: bool?
+  discord_notify_best_share: bool?
+  discord_best_share_cooldown_seconds: int(0,)?
+  external_node_rpc_url: url?
+  external_node_rpc_user: str?
+  external_node_rpc_password: password?
+  external_node_zmq_block_url: str?

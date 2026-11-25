@@ -1,0 +1,11 @@
+#!/command/with-contenv bash
+# The pool itself: Stratum server, background jobs and web UI in one process.
+set -euo pipefail
+
+# shellcheck source=options.sh
+source /usr/local/lib/hashforge/options.sh
+
+/usr/local/lib/hashforge/wait-for-services.sh
+
+cd /app
+exec s6-envdir "$HASHFORGE_RUN/pool-environment" s6-setuidgid hashforge dotnet HashForge.Web.dll

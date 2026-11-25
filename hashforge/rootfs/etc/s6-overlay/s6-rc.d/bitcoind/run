@@ -1,0 +1,52 @@
+#!/command/with-contenv bash
+# The bundled Bitcoin Core node. It listens for the pool on 127.0.0.1 only; nothing outside the
+# container can reach its RPC or ZeroMQ ports.
+set -euo pipefail
+
+# shellcheck source=options.sh
+source /usr/local/lib/hashforge/options.sh
+
+if ! uses_bundled_node; then
+    log "Using the Bitcoin node at $(option external_node_rpc_url); the bundled node stays off"
+    exec sleep infinity
+fi
+
+network="$(option network mainnet)"
+prune_mb="$(option prune_mb 550)"
+
+case "$network" in
+    mainnet) network_flag="" ;;
+    testnet4) network_flag="-testnet4" ;;
+    signet) network_flag="-signet" ;;
+    regtest) network_flag="-regtest" ;;
+    *) fail "Unknown network '$network' (use mainnet, testnet4, signet or regtest)" ;;
+esac
+
+# Bitcoin Core stores a salted hash of the RPC password rather than the password itself.
+salt="$(openssl rand -hex 16)"
+hash="$(printf '%s' "$(cat "$HASHFORGE_DATA/secrets/rpc_password")" | openssl dgst -sha256 -hmac "$salt" | sed 's/^.* //')"
+
+# prune_mb of 0 keeps every block (a full node); anything else is the disk budget for blocks in MiB.
+if [ "$prune_mb" = "0" ]; then
+    log "Starting Bitcoin Core on $network as a full node"
+else
+    log "Starting Bitcoin Core on $network as a pruned node (${prune_mb} MiB of blocks)"
+fi
+
+# shellcheck disable=SC2086 # network_flag is intentionally unquoted so an empty value adds no argument.
+exec s6-setuidgid bitcoin bitcoind \
+    $network_flag \
+    -datadir="$HASHFORGE_DATA/bitcoin" \
+    -printtoconsole \
+    -nodebuglogfile \
+    -server=1 \
+    -rpcauth="hashforge:${salt}\$${hash}" \
+    -rpcbind=127.0.0.1 \
+    -rpcallowip=127.0.0.1 \
+    -rpcport=8332 \
+    -port=8333 \
+    -listenonion=0 \
+    -zmqpubhashblock=tcp://127.0.0.1:28332 \
+    -dbcache="$(option db_cache_mb 450)" \
+    -blockreservedweight="$(option block_reserved_weight 100000)" \
+    -prune="$prune_mb"

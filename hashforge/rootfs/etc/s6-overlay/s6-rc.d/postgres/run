@@ -1,0 +1,11 @@
+#!/command/with-contenv bash
+# PostgreSQL holds the pool's permanent records: blocks found, payouts and miner statistics.
+set -euo pipefail
+
+# shellcheck source=options.sh
+source /usr/local/lib/hashforge/options.sh
+
+exec s6-setuidgid postgres postgres \
+    -D "$HASHFORGE_DATA/postgres" \
+    -c listen_addresses=127.0.0.1 \
+    -c unix_socket_directories=/run/postgresql

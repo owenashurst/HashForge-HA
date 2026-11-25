@@ -1,0 +1,14 @@
+#!/command/with-contenv bash
+# Redis keeps the pool's state snapshots. Append-only mode lets them survive a restart.
+set -euo pipefail
+
+# shellcheck source=options.sh
+source /usr/local/lib/hashforge/options.sh
+
+exec s6-setuidgid redis redis-server \
+    --bind 127.0.0.1 \
+    --port 6379 \
+    --dir "$HASHFORGE_DATA/redis" \
+    --appendonly yes \
+    --daemonize no \
+    --logfile ""
