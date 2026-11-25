@@ -2,7 +2,9 @@
 # because a Home Assistant app is a single container rather than a stack of them.
 
 # --- The pool, built from the HashForge repository ---------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS pool
+# Compiled on the build machine's own architecture: the output is the same for every processor, and the
+# .NET compiler does not run reliably under emulation when building for ARM on an Intel machine.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS pool
 
 # A branch, tag or commit of https://github.com/owenashurst/HashForge. The publish workflow passes the
 # exact commit that main points at, so every release is built from a known revision.

@@ -52,9 +52,18 @@ jobs:
         run: bats tests
 
   image:
-    name: Image builds and starts
-    runs-on: ubuntu-latest
+    name: Image builds and starts (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Both architectures Home Assistant supports, each on a machine of that kind rather than emulated.
+        include:
+          - arch: amd64
+            os: ubuntu-24.04
+          - arch: aarch64
+            os: ubuntu-24.04-arm
     steps:
       - name: Check out
         uses: actions/checkout@v7
