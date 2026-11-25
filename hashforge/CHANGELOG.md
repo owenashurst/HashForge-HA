@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Worker names can use letters and digits from any language, so a name like Gårdsrigg or 矿机一号 is
+  accepted. The other characters allowed are still `.`, `_` and `-`.
+
 ## 0.1.1
 
 - No longer marked experimental, after running on a real Home Assistant machine.
