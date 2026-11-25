@@ -1,0 +1,140 @@
+name: Publish
+
+# Releases a new version of the app. It runs when the version in hashforge/config.yaml (or anything
+# else that goes into the image) changes on main, builds the image for both architectures from the
+# newest HashForge code, and pushes it to the GitHub container registry under that version. Home
+# Assistant then offers the update to everyone who has the app installed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - hashforge/config.yaml
+      - hashforge/Dockerfile
+      - hashforge/rootfs/**
+      - .github/workflows/publish.yml
+  workflow_dispatch:
+    inputs:
+      hashforge_ref:
+        description: Branch, tag or commit of owenashurst/HashForge to build (the default is the tip of main)
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      architectures: ${{ steps.info.outputs.architectures }}
+      build_matrix: ${{ steps.matrix.outputs.matrix }}
+      image_name: ${{ steps.normalize.outputs.image_name }}
+      registry_prefix: ${{ steps.normalize.outputs.registry_prefix }}
+      version: ${{ steps.info.outputs.version }}
+      hashforge_commit: ${{ steps.pool.outputs.commit }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Read the app's configuration
+        id: info
+        uses: home-assistant/actions/helpers/info@07f46fd2e19967768b5fd3000f91f857452b767c # 2026.11.0
+        with:
+          path: ./hashforge
+
+      - name: Split the image name
+        id: normalize
+        env:
+          IMAGE: ${{ steps.info.outputs.image }}
+        run: |
+          echo "image_name=${IMAGE##*/}" >> "$GITHUB_OUTPUT"
+          echo "registry_prefix=${IMAGE%/*}" >> "$GITHUB_OUTPUT"
+
+      - name: Find the HashForge commit to build
+        id: pool
+        env:
+          REF: ${{ inputs.hashforge_ref || 'main' }}
+        # Resolved to a commit here, once, so both architectures are built from exactly the same code
+        # and the build cache can never hand back an older copy of a branch.
+        run: |
+          commit="$(git ls-remote https://github.com/owenashurst/HashForge.git "$REF" | head -n 1 | cut -f 1)"
+          if [ -z "$commit" ]; then
+            # Not a branch or tag, so it is taken to be a commit already.
+            commit="$REF"
+          fi
+          echo "commit=${commit}" >> "$GITHUB_OUTPUT"
+          echo "Building HashForge at ${commit}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare the build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.09.0
+        with:
+          architectures: ${{ steps.info.outputs.architectures }}
+          image-name: ${{ steps.normalize.outputs.image_name }}
+          registry-prefix: ${{ steps.normalize.outputs.registry_prefix }}
+
+  build:
+    name: Build ${{ matrix.arch }} image
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.build_matrix) }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and push the image
+        uses: home-assistant/builder/actions/build-image@2026.09.0
+        with:
+          arch: ${{ matrix.arch }}
+          build-args: |
+            HASHFORGE_REF=${{ needs.prepare.outputs.hashforge_commit }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          context: ./hashforge
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.prepare.outputs.version }}
+            latest
+          labels: |
+            io.hass.type=app
+            io.hass.name=HashForge
+            io.hass.description=Run your own Bitcoin mining pool, with a Bitcoin node, from Home Assistant
+            io.hass.url=https://github.com/owenashurst/HashForge-HA
+            org.opencontainers.image.revision=${{ github.sha }}
+          push: true
+          version: ${{ needs.prepare.outputs.version }}
+
+  manifest:
+    name: Publish multi-arch manifest
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+      packages: write
+    steps:
+      - name: Publish the multi-arch manifest
+        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.09.0
+        with:
+          architectures: ${{ needs.prepare.outputs.architectures }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          image-name: ${{ needs.prepare.outputs.image_name }}
+          image-tags: |
+            ${{ needs.prepare.outputs.version }}
+            latest
+          registry-prefix: ${{ needs.prepare.outputs.registry_prefix }}
