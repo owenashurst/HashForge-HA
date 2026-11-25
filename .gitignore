@@ -1,0 +1,5 @@
+# Local test data and editor files; nothing here belongs in the repository.
+data/
+*.log
+.vscode/
+.idea/

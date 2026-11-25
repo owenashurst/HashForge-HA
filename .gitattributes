@@ -1,0 +1,8 @@
+* text=auto
+# Everything under rootfs is copied into a Linux image and run there, so it must keep Unix line endings
+# even when checked out on Windows. The service scripts have no file extension, hence the folder rule.
+hashforge/rootfs/** text eol=lf
+*.sh text eol=lf
+*.bats text eol=lf
+Dockerfile text eol=lf
+*.png binary
