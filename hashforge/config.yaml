@@ -12,8 +12,12 @@ arch:
 # The image runs its own process supervisor (s6), which has to be the first process in the container.
 init: false
 stage: experimental
-webui: "http://[HOST]:[PORT:8080]/"
+# Shows the pool inside Home Assistant, with a sidebar entry, for anyone signed in as an administrator.
+# Home Assistant forwards those requests to the pool's ordinary web port.
+ingress: true
+ingress_port: 8080
 panel_icon: mdi:pickaxe
+panel_title: HashForge
 # Bitcoin Core needs time to write its databases out; cutting it short forces a long re-check on the next start.
 timeout: 300
 # The pool keeps running during a backup. The database is first written out as a single file, and the

@@ -20,6 +20,8 @@ cleanup() {
 trap cleanup EXIT
 cleanup
 
+# Checks below read from here-strings rather than pipes: with pipefail, a grep that stops at its first
+# match can make the command feeding it fail, which would report a failure that did not happen.
 fail() {
     echo "FAILED: $*" >&2
     docker logs --tail 80 "$name" >&2 || true
@@ -54,11 +56,19 @@ for attempt in $(seq 1 90); do
 done
 
 pools="$(curl --silent --fail --max-time 10 "http://127.0.0.1:${web_port}/api/pools")"
-echo "$pools" | grep --quiet '"solo"' || fail "the solo pool is missing from /api/pools: $pools"
-echo "$pools" | grep --quiet '"pplns"' || fail "the PPLNS pool is missing from /api/pools: $pools"
-echo "$pools" | grep --quiet '"prop"' && fail "the proportional pool is listed although it is switched off: $pools"
+grep --quiet '"solo"' <<< "$pools" || fail "the solo pool is missing from /api/pools: $pools"
+grep --quiet '"pplns"' <<< "$pools" || fail "the PPLNS pool is missing from /api/pools: $pools"
+grep --quiet '"prop"' <<< "$pools" && fail "the proportional pool is listed although it is switched off: $pools"
 
-curl --silent --fail --max-time 10 "http://127.0.0.1:${web_port}/" > /dev/null || fail "the home page did not load"
+home="$(curl --silent --fail --max-time 10 "http://127.0.0.1:${web_port}/")" || fail "the home page did not load"
+grep --quiet '<base href="/"' <<< "$home" || fail "the home page is not based at the root when opened directly"
+
+# Opened from Home Assistant's sidebar, every address on the page must start with the ingress prefix.
+ingress="/api/hassio_ingress/smoke-token"
+home="$(curl --silent --fail --max-time 10 --header "X-Ingress-Path: ${ingress}" "http://127.0.0.1:${web_port}/")"     || fail "the home page did not load through the ingress header"
+grep --quiet "<base href=\"${ingress}/\"" <<< "$home" || fail "the home page ignores Home Assistant's ingress path"
+# Apart from the base address itself, nothing may start at the site's root.
+grep --quiet --extended-regexp '(href|src)="/[^/"]' <<< "${home//<base href=/<base at=}"     && fail "the home page has an address that escapes the ingress path"
 
 # The Stratum port must accept a miner: subscribe and expect a reply.
 reply="$(docker exec "$name" bash -c '
@@ -66,7 +76,7 @@ reply="$(docker exec "$name" bash -c '
     printf "%s\n" "{\"id\":1,\"method\":\"mining.subscribe\",\"params\":[\"smoke/1.0\"]}" >&3
     IFS= read -r -t 10 line <&3
     printf "%s" "$line"')"
-echo "$reply" | grep --quiet '"result"' || fail "the solo pool did not answer mining.subscribe: $reply"
+grep --quiet '"result"' <<< "$reply" || fail "the solo pool did not answer mining.subscribe: $reply"
 
 # The backup hook must produce a database dump that is not empty.
 docker exec "$name" /usr/local/lib/hashforge/backup-database.sh > /dev/null || fail "the backup hook failed"
@@ -84,6 +94,7 @@ for attempt in $(seq 1 90); do
     [ "$attempt" -lt 90 ] || fail "the pool did not come back after its database was restored"
     sleep 2
 done
-docker logs "$name" 2>&1 | grep --quiet "Restoring the pool's database" || fail "the database dump was not restored"
+logs="$(docker logs "$name" 2>&1)"
+grep --quiet "Restoring the pool's database" <<< "$logs" || fail "the database dump was not restored"
 
 echo "Smoke test passed"

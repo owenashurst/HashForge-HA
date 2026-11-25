@@ -4,4 +4,5 @@
 
 - First release: the HashForge pool, Bitcoin Core 32.1, Redis and PostgreSQL 17 in one app.
 - Works with the bundled node or with a Bitcoin Core node you already run.
+- The pool opens inside Home Assistant and can be added to the sidebar.
 - The pool's records are included in Home Assistant backups; the blockchain is not.

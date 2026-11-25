@@ -14,6 +14,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/options.sh"
 [ "$#" -eq 1 ] || fail "usage: pool-environment.sh <output directory>"
 output="$1"
 secrets="$HASHFORGE_DATA/secrets"
+# The fixed address Home Assistant's ingress gateway connects from.
+INGRESS_GATEWAY="172.30.32.2"
 
 setting() {
     printf '%s' "$2" > "$output/$1"
@@ -118,6 +120,12 @@ web() {
         setting "Admin__AllowedNetworks__${index}" "$network"
         index=$((index + 1))
     done < <(option_list admin_networks)
+    # Requests that come through Home Assistant's sidebar arrive from its ingress gateway, and Home
+    # Assistant has already checked that the visitor is one of its administrators.
+    setting "Admin__AllowedNetworks__${index}" "$INGRESS_GATEWAY/32"
+    # The gateway strips its own prefix from the address and names it in this header; the pool needs it
+    # back to write links that work inside Home Assistant.
+    setting Web__PathBaseHeader "X-Ingress-Path"
     # The pool keeps the keys that protect its web forms under its home folder; in /data they survive updates.
     setting HOME "$HASHFORGE_DATA/pool"
 }

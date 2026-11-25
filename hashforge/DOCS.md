@@ -25,7 +25,8 @@ smaller blockchain and coins that have no value.
 2. Set **Address miners connect to** to the address of your Home Assistant machine as your miners see
    it, for example `192.168.1.10`. The default, `homeassistant.local`, works on many networks.
 3. Choose which pools to run. Only the solo pool is on by default.
-4. Start the app and choose **Open Web UI**.
+4. Start the app and choose **Open Web UI**. To keep the pool one click away, turn on **Show in
+   sidebar** on the app's **Info** tab.
 
 ## Connecting a miner
 
@@ -58,10 +59,12 @@ in its log.
 
 ### The admin page
 
-The pool's admin page (`/admin`) can add pools, change fees and more, and it has no password. It is
-open only to the address ranges listed under **Networks allowed to open the admin page**. The default
-allows every private home network range. Narrow it to your own network, and do not publish port 8080 to
-the internet.
+The pool's admin page (`/admin`) can add pools, change fees and more. Opened inside Home Assistant it
+is available to Home Assistant administrators, who are the only people shown the pool there.
+
+Opened directly on port 8080 it has no password, and is open only to the address ranges listed under
+**Networks allowed to open the admin page**. The default allows every private home network range.
+Narrow it to your own network, and do not publish port 8080 to the internet.
 
 The five spare ports (3337 to 3341) are for pools you add from the admin page. They are switched off
 until you give them a number on the **Network** tab.
@@ -91,8 +94,11 @@ HashForge code at the time; the app's log names the exact revision on its first 
 
 ## Good to know
 
-- The web interface is plain HTTP and is not shown inside Home Assistant's own pages; **Open Web UI**
-  opens it in a new tab.
+- The pool can be opened two ways. Inside Home Assistant (**Open Web UI** or the sidebar) it is
+  protected by your Home Assistant login and works wherever Home Assistant does.
+  Directly at `http://<your-address>:8080` it needs no login, which suits a wall display or sharing
+  statistics with other miners on your network. To allow only the first way, clear port 8080 on the
+  app's **Network** tab.
 - Stratum is unencrypted (Stratum V1).
 - Stopping the app can take a minute or two while the node writes its databases to disk. Let it finish;
   cutting the power forces a long re-check the next time it starts.

@@ -146,7 +146,31 @@ setting() {
     [ "$status" -eq 0 ]
     [ "$(setting Admin__AllowedNetworks__0)" = "192.168.1.0/24" ]
     [ "$(setting Admin__AllowedNetworks__1)" = "10.0.0.0/8" ]
-    [ ! -e "$output_dir/Admin__AllowedNetworks__2" ]
+}
+
+@test "GIVEN_PoolEnvironment_WHEN_AdminNetworksAreListed_THEN_HomeAssistantsGatewayIsAllowedAfterThem" {
+    options '{"admin_networks": ["192.168.1.0/24", "10.0.0.0/8"]}'
+
+    run bash "$script" "$output_dir"
+
+    [ "$status" -eq 0 ]
+    [ "$(setting Admin__AllowedNetworks__2)" = "172.30.32.2/32" ]
+    [ ! -e "$output_dir/Admin__AllowedNetworks__3" ]
+}
+
+@test "GIVEN_PoolEnvironment_WHEN_NoAdminNetworksAreListed_THEN_OnlyHomeAssistantsGatewayIsAllowed" {
+    run bash "$script" "$output_dir"
+
+    [ "$status" -eq 0 ]
+    [ "$(setting Admin__AllowedNetworks__0)" = "172.30.32.2/32" ]
+    [ ! -e "$output_dir/Admin__AllowedNetworks__1" ]
+}
+
+@test "GIVEN_PoolEnvironment_WHEN_ItRuns_THEN_PoolReadsItsSubPathFromHomeAssistantsHeader" {
+    run bash "$script" "$output_dir"
+
+    [ "$status" -eq 0 ]
+    [ "$(setting Web__PathBaseHeader)" = "X-Ingress-Path" ]
 }
 
 @test "GIVEN_PoolEnvironment_WHEN_BrandingContainsSpacesQuotesAndHashes_THEN_ValuesAreKeptExactly" {
@@ -190,7 +214,8 @@ setting() {
     run bash "$script" "$output_dir"
 
     [ "$status" -eq 0 ]
-    [ ! -e "$output_dir/Admin__AllowedNetworks__1" ]
+    [ "$(setting Admin__AllowedNetworks__1)" = "172.30.32.2/32" ]
+    [ ! -e "$output_dir/Admin__AllowedNetworks__2" ]
 }
 
 @test "GIVEN_PoolEnvironment_WHEN_NoOutputDirectoryIsGiven_THEN_ItFailsWithUsage" {
