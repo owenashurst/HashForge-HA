@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- Fixes "duplicate share" rejections after the pool changed a miner's difficulty. Some miners were
+  made to repeat work they had already handed in; they are now given new work instead.
+
 ## 0.1.4
 
 - Rejected shares are shown as a reject rate, such as 0.12%, with the count beside it. A count on
