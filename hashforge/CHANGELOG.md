@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Rejected shares are shown as a reject rate, such as 0.12%, with the count beside it. A count on
+  its own only grows, so it looked worse the longer a pool had been running.
+
 ## 0.1.3
 
 - A proper HashForge logo: on the app in Home Assistant, and in the pool's header and browser tab.
