@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.7
+
+- A pool you stop on the pool's admin page now stays stopped, through restarts and updates, until you
+  press Start there. Before, a pool switched on in these options came back at the next restart, and a
+  pool created on the admin page was deleted when stopped.
+- The pool switches in these options decide which built-in pools exist; the admin page decides whether
+  each one is running. Switch a pool off here to remove it. Switch it on again and it returns running.
+- Pools created on the admin page can be deleted there once stopped.
+- A stopped shared pool keeps the work its miners have handed in.
+
 ## 0.1.6
 
 - New option, **Websites allowed to use the API**: list the address of a web page of your own so it can
