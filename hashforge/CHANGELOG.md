@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6
+
+- New option, **Websites allowed to use the API**: list the address of a web page of your own so it can
+  read the pool's JSON API from a browser without a "CORS" error. Nothing is allowed until you add one.
+
 ## 0.1.5
 
 - Fixes "duplicate share" rejections after the pool changed a miner's difficulty. Some miners were

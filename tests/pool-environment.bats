@@ -218,6 +218,23 @@ setting() {
     [ ! -e "$output_dir/Admin__AllowedNetworks__2" ]
 }
 
+@test "GIVEN_PoolEnvironment_WHEN_ApiOriginsAreListed_THEN_EachGetsItsOwnNumberedSetting" {
+    options '{"api_allowed_origins": ["https://stats.example.com", "http://localhost:5173"]}'
+
+    run bash "$script" "$output_dir"
+
+    [ "$status" -eq 0 ]
+    [ "$(setting Web__ApiAllowedOrigins__0)" = "https://stats.example.com" ]
+    [ "$(setting Web__ApiAllowedOrigins__1)" = "http://localhost:5173" ]
+}
+
+@test "GIVEN_PoolEnvironment_WHEN_NoApiOriginsAreListed_THEN_NoneAreSet" {
+    run bash "$script" "$output_dir"
+
+    [ "$status" -eq 0 ]
+    [ ! -e "$output_dir/Web__ApiAllowedOrigins__0" ]
+}
+
 @test "GIVEN_PoolEnvironment_WHEN_NoOutputDirectoryIsGiven_THEN_ItFailsWithUsage" {
     run bash "$script"
 

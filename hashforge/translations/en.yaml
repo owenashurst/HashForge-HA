@@ -104,6 +104,12 @@ configuration:
     description: >-
       The IP address of a reverse proxy in front of the web interface, if you use one, so that the admin
       page sees visitors' real addresses.
+  api_allowed_origins:
+    name: Websites allowed to use the API
+    description: >-
+      For a web page of your own that reads the pool's JSON API: browsers block it (a "CORS" error) unless
+      its website is listed here. Add each as its address with no path, such as https://stats.example.com
+      or http://localhost:5173, or add * to allow any website.
   discord_webhook_url:
     name: Discord webhook
     description: A Discord webhook address to post to when something notable happens. Leave unset for no messages.

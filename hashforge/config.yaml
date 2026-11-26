@@ -1,7 +1,7 @@
 name: HashForge
 # Raising this number is what releases an update: the publish workflow builds the image from the latest
 # HashForge code and tags it with this version, and Home Assistant then offers it to everyone.
-version: "0.1.5"
+version: "0.1.6"
 slug: hashforge
 description: Run your own Bitcoin mining pool, with a Bitcoin node, from Home Assistant
 url: "https://github.com/owenashurst/HashForge-HA"
@@ -80,6 +80,8 @@ schema:
   brand_accent_color: match(^#[0-9a-fA-F]{6}$)?
   brand_logo_url: url?
   trusted_proxy: str?
+  api_allowed_origins:
+    - 'match(^(\*|https?://[^/\s,]+/?)$)?'
   discord_webhook_url: url?
   discord_notify_block_found: bool?
   discord_notify_best_share: bool?

@@ -112,7 +112,7 @@ branding() {
 }
 
 web() {
-    local index=0 network
+    local index=0 network origin
     setting ASPNETCORE_HTTP_PORTS "8080"
     setting Web__StratumHost "$(option stratum_host homeassistant.local)"
     setting Web__TrustedProxies__0 "$(option trusted_proxy)"
@@ -126,6 +126,12 @@ web() {
     # The gateway strips its own prefix from the address and names it in this header; the pool needs it
     # back to write links that work inside Home Assistant.
     setting Web__PathBaseHeader "X-Ingress-Path"
+    # Websites whose pages may read the pool's API from a browser, for someone building their own front end.
+    index=0
+    while IFS= read -r origin; do
+        setting "Web__ApiAllowedOrigins__${index}" "$origin"
+        index=$((index + 1))
+    done < <(option_list api_allowed_origins)
     # The pool keeps the keys that protect its web forms under its home folder; in /data they survive updates.
     setting HOME "$HASHFORGE_DATA/pool"
 }
