@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- A proper HashForge logo: on the app in Home Assistant, and in the pool's header and browser tab.
+
 ## 0.1.2
 
 - Worker names can use letters and digits from any language, so a name like Gårdsrigg or 矿机一号 is
